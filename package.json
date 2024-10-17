@@ -14,6 +14,7 @@
 		"@nostr-dev-kit/ndk": "^2.10.1",
 		"browser-hbs": "file:../browser-hbs",
 		"framer-motion": "^11.9.0",
+		"html2canvas": "^1.4.1",
 		"nostr-tools": "^2.7.2",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",

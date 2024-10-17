@@ -5,11 +5,13 @@ import { ArrowLeftIcon, ArrowRightIcon } from '@assets/icons'
 type Props = {
 	onPrevClick: () => void
 	onNextClick: () => void
+	onContinue: () => void
 }
 
 export const FooterTemplatePreview: FC<Props> = ({
 	onNextClick,
 	onPrevClick,
+	onContinue,
 }) => {
 	return (
 		<div className='p-4 flex justify-between items-center shadow-top'>
@@ -22,7 +24,9 @@ export const FooterTemplatePreview: FC<Props> = ({
 				<ArrowLeftIcon />
 			</Button>
 
-			<Button color='primary'>Continue</Button>
+			<Button color='primary' onClick={onContinue}>
+				Continue
+			</Button>
 
 			<Button
 				isIconOnly
