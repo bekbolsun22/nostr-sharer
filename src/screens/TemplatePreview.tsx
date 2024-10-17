@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useState } from 'react'
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { ContentTemplatePreview } from '@components/ContentTemplatePreview'
 import { FooterTemplatePreview } from '@components/FooterTemplatePreview'
 import { HeaderTemplatePreview } from '@components/HeaderTemplatePreview'
@@ -12,6 +12,8 @@ import {
 import { NDKKind, NDKTag, NostrEvent } from '@nostr-dev-kit/ndk'
 import { ModalTemplate } from '@components/ModalTemplate'
 import { useDisclosure } from '@nextui-org/react'
+import ModalPreviewImage from '@/components/ModalPreviewImage'
+import html2canvas from 'html2canvas'
 
 type IEvent = {
 	author: NostrEvent | undefined
@@ -36,8 +38,15 @@ export const TemplatePreview = () => {
 	const [selectedTemplate, setSelectedTemplate] = useState<ITemplate | null>(
 		null,
 	)
+	const [imageDataUrl, setImageDataUrl] = useState<string>()
+	const ref = useRef<HTMLIFrameElement | null>(null)
 
 	const { isOpen, onOpen, onOpenChange } = useDisclosure()
+	const {
+		isOpen: isImagePreviewOpen,
+		onOpen: onOpenImagePreview,
+		onOpenChange: onOpenImagePreviewChange,
+	} = useDisclosure()
 
 	const renderTemplate = useCallback(
 		async (template: string, event: IEvent) => {
@@ -106,6 +115,43 @@ export const TemplatePreview = () => {
 		return setSelectedTemplate(templates[currentIndex + 1])
 	}
 
+	// const handleContinue = useCallback(async () => {
+	// 	if (ref.current === null) return
+	// 	try {
+	// 		const url = await toPng(ref.current, {
+	// 			cacheBust: true,
+	// 			height: ref.current.offsetHeight,
+	// 			width: ref.current.offsetWidth,
+	// 		})
+	// 		setImageDataUrl(url)
+	// 		onOpenImagePreview()
+	// 	} catch (error) {
+	// 		console.log(error)
+	// 	}
+	// }, [ref, onOpenImagePreview])
+
+	const handleContinue = useCallback(() => {
+		if (!ref.current) return
+
+		console.dir(ref)
+
+		html2canvas(ref.current.contentDocument?.body as Document['body'], {
+			onclone: (document) => {
+				console.log({ document })
+			},
+			scale: 1,
+			useCORS: true,
+		})
+			.then((canvas) => {
+				const imageDataUrl = canvas.toDataURL('image/png')
+				setImageDataUrl(imageDataUrl)
+				onOpenImagePreview()
+			})
+			.catch((error) => {
+				console.error('Error capturing image with html2canvas:', error)
+			})
+	}, [ref, onOpenImagePreview])
+
 	return (
 		<>
 			<div className='flex flex-col h-full'>
@@ -118,10 +164,12 @@ export const TemplatePreview = () => {
 					isError={isError}
 					isLoading={isLoading}
 					html={html}
+					ref={ref}
 				/>
 				<FooterTemplatePreview
 					onPrevClick={handlePrevTemplate}
 					onNextClick={handleNextTemplate}
+					onContinue={handleContinue}
 				/>
 			</div>
 
@@ -132,6 +180,14 @@ export const TemplatePreview = () => {
 					templates={templates}
 					selectedTemplate={selectedTemplate}
 					onTemplateChange={handleTemplateChange}
+				/>
+			)}
+
+			{isImagePreviewOpen && (
+				<ModalPreviewImage
+					dataUrl={imageDataUrl}
+					isOpen={isImagePreviewOpen}
+					onOpenChange={onOpenImagePreviewChange}
 				/>
 			)}
 		</>
